@@ -1,0 +1,47 @@
+spring:
+  sql.init.mode: always
+  application:
+    name: meetup-tx
+  port: 8080
+  datasource:
+    url: jdbc:postgresql://localhost:15432/meetup
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      transaction-isolation: TRANSACTION_READ_COMMITTED # TRANSACTION_READ_COMMITTED / TRANSACTION_REPEATABLE_READ / TRANSACTION_SERIALIZABLE
+      maximum-pool-size: 30
+      connection-init-sql: "
+           SET LOCK_TIMEOUT= '3s';
+           "
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        #generate_statistics: true
+  kafka:
+    consumer:
+      auto-offset-reset: latest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      group-id: meetup-tx-1
+      security:
+        protocol: PLAINTEXT
+    bootstrap-servers: localhost:9092
+
+signal.topic:
+  name: meetup.signal.0
+  concurrency: 10
+  lock-enable: true
+
+
+
+logging:
+  level:
+    root: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.engine.internal: ERROR
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    ru.itecoinno.meetup.transaction: DEBUG
+

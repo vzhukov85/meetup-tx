@@ -1,0 +1,47 @@
+spring:
+  profiles: test
+  sql.init.mode: never
+  application:
+    name: meetup-tx
+  port: 8080
+  datasource:
+    url: jdbc:postgresql://localhost:15432/meetup
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      transaction-isolation: TRANSACTION_READ_COMMITTED # TRANSACTION_READ_COMMITTED / TRANSACTION_REPEATABLE_READ / TRANSACTION_SERIALIZABLE
+      maximum-pool-size: 10
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        #generate_statistics: true
+  kafka:
+    consumer:
+      auto-offset-reset: latest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      group-id: meetup-tx-1
+      security:
+        protocol: PLAINTEXT
+    bootstrap-servers: localhost:9092
+
+signal.topic.name: meetup.signal.0
+
+logging:
+  level:
+    root: WARN
+    org.hibernate.SQL: DEBUG
+    org.hibernate.engine.internal: ERROR
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    ru.itecoinno.meetup.transaction: DEBUG
+
+test.gen:
+  devices: 10
+  signals-per-device: 1000
+  time-gen-millsec: 2000
+  signal-shuffle-enable: true
+  time-shuffle-enable: true
+
