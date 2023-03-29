@@ -5,6 +5,7 @@ import lombok.*;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Version;
 import java.time.LocalDateTime;
 
 @Getter
@@ -21,4 +22,6 @@ public class DeviceSignal {
     private int signalCount;
     private int weight;
     private LocalDateTime lastDateTime;
+    //@Version
+    private int version;
 }

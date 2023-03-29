@@ -2,7 +2,6 @@ package ru.itecoinno.meetup.transaction.producer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,7 +11,6 @@ import org.springframework.test.context.ActiveProfiles;
 import ru.itecoinno.meetup.transaction.TestConfiguration;
 import ru.itecoinno.meetup.transaction.model.Signal;
 
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -22,15 +20,11 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.IntStream;
-import java.util.stream.LongStream;
 
 @SpringBootTest(classes = TestConfiguration.class)
 @ActiveProfiles("test")
 @Slf4j
 public class DeviceProducerTest {
-
-
 
     @Value("${signal.topic.name}")
     private String topicName;
@@ -86,6 +80,7 @@ public class DeviceProducerTest {
             for (long l = 0L; l < signalPerDevice; ++l) {
                 dateTimes.add(startTime.minusSeconds(l*delay));
             }
+            Collections.reverse(dateTimes);
             if (timeShuffleEnable)
                 Collections.shuffle(dateTimes);
             try {

@@ -26,8 +26,11 @@ public class SignalConsumer {
             containerFactory = "signalsFactory")
     public void accept(@Payload ConsumerRecord<String, String> signalData) throws Exception {
         Signal signal = objectMapper.readValue(signalData.value(), Signal.class);
-        signalService.processSignal(signal);
+        signalService.processSignalFirst(signal);
+        //signalService.processSignalUpdate(signal);
         //signalService.processSignalRepeatable(signal);
+        //signalService.processSignalLock(signal);
+        //signalService.processSignalRepeatableOptimistic(signal);
     }
 }
 

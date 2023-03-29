@@ -25,17 +25,26 @@ public class SignalService {
     @Autowired
     private DeviceSignalWithLockRepository deviceSignalWithLockRepository;
 
-    @Value("${signal.topic.lock-enable:true}")
-    private Boolean lockEnable;
+    public void processSignalFirst(Signal deviceSignal) {
+        Optional<DeviceSignal> device = deviceSignalRepository.findById(deviceSignal.getDeviceId());
+        device.ifPresentOrElse(d -> {
+            d.setSignalCount(d.getSignalCount() + 1);
+            d.setWeight(d.getWeight() + deviceSignal.getWeight());
+            d.setLastDateTime(deviceSignal.getTs());
+            deviceSignalRepository.save(d);
+        }, () -> {
+            log.error("Не найдено устройсво {}", deviceSignal.getDeviceName());
+        });
+    }
 
+    @Transactional
+    public void processSignalUpdate(Signal deviceSignal) {
+        deviceSignalRepository.updateSignalData(deviceSignal.getWeight(), deviceSignal.getDeviceId(), deviceSignal.getTs());
+    }
 
-    @Transactional()
-    public void processSignal(Signal deviceSignal) {
-        Optional<DeviceSignal> device = null;
-        if (lockEnable)
-            device = deviceSignalWithLockRepository.findById(deviceSignal.getDeviceId());
-        else
-            device = deviceSignalRepository.findById(deviceSignal.getDeviceId());
+    @Transactional
+    public void processSignalLock(Signal deviceSignal) {
+        Optional<DeviceSignal> device = deviceSignalWithLockRepository.findById(deviceSignal.getDeviceId());
         device.ifPresentOrElse(d -> {
             d.setSignalCount(d.getSignalCount() + 1);
             d.setWeight(d.getWeight() + deviceSignal.getWeight());
@@ -51,8 +60,7 @@ public class SignalService {
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     @Retryable(maxAttempts = 6, backoff = @Backoff(delay = 500, multiplier = 2))
     public void processSignalRepeatable(Signal deviceSignal) {
-        Optional<DeviceSignal> device = null;
-        device = deviceSignalRepository.findById(deviceSignal.getDeviceId());
+        Optional<DeviceSignal> device = deviceSignalRepository.findById(deviceSignal.getDeviceId());
         device.ifPresentOrElse(d -> {
             d.setSignalCount(d.getSignalCount() + 1);
             d.setWeight(d.getWeight() + deviceSignal.getWeight());
@@ -70,4 +78,18 @@ public class SignalService {
         log.warn("Не удалось обработать сигнал {}", deviceSignal.getDeviceId());
     }
 
+    @Retryable(maxAttempts = 6, backoff = @Backoff(delay = 500, multiplier = 2))
+    public void processSignalRepeatableOptimistic(Signal deviceSignal) {
+        Optional<DeviceSignal> device = deviceSignalRepository.findById(deviceSignal.getDeviceId());
+        device.ifPresentOrElse(d -> {
+            d.setSignalCount(d.getSignalCount() + 1);
+            d.setWeight(d.getWeight() + deviceSignal.getWeight());
+            if (d.getLastDateTime() == null || d.getLastDateTime().isBefore(deviceSignal.getTs())) {
+                d.setLastDateTime(deviceSignal.getTs());
+            }
+            deviceSignalRepository.save(d);
+        }, () -> {
+            log.error("Не найдено устройсво {}", deviceSignal.getDeviceName());
+        });
+    }
 }

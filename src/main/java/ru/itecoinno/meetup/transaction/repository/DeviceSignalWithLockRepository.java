@@ -12,4 +12,5 @@ import java.util.Optional;
 public interface DeviceSignalWithLockRepository extends CrudRepository<DeviceSignal, Integer> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     public Optional<DeviceSignal> findById(Integer id);
+
 }
